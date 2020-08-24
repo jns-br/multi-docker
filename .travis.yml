@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t jnsbr/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true jnsbr/react-test npm test
+
+after_success:
+  - docker build -t jnsbr/multi-client ./client
+  - docker build -t jnsbr/multi-nginx ./nginx
+  - docker build -t jnsbr/multi-server ./server
+  - docker build -t jnsbr/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push jnsbr/multi-client
+  - docker push jnsbr/multi-nginx
+  - docker push jnsbr/multi-server
+  - docker push jnsbr/multi-worker
